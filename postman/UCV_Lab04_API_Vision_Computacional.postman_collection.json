@@ -1,0 +1,328 @@
+{
+  "info": {
+    "_postman_id": "ucv-lab04-api-cv-collection",
+    "name": "UCV Lab04 - API Visión Computacional",
+    "description": "Colección de pruebas para la API REST de Visión Computacional.\nDesarrollada con FastAPI y OpenCV.\n\n## Configuración\n1. Importa esta colección en Postman.\n2. Asegúrate de que la variable `base_url` apunte a tu servidor.\n3. Para el endpoint `/analyze-image`, selecciona una imagen real en el campo `file`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string",
+      "description": "URL base del servidor FastAPI"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET / - API funcionando",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje correcto', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.mensaje).to.eql('API de Visión Computacional funcionando');",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es JSON', function () {",
+                  "    pm.response.to.have.header('Content-Type');",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Tiempo de respuesta < 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Verifica que la API esté activa y responda correctamente."
+          },
+          "response": [
+            {
+              "name": "Respuesta exitosa",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"API de Visión Computacional funcionando\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Análisis de Imagen",
+      "item": [
+        {
+          "name": "POST /analyze-image - Imagen válida (PNG)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tiene campo mensaje', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('mensaje');",
+                  "    pm.expect(json.mensaje).to.eql('Procesamiento exitoso');",
+                  "});",
+                  "",
+                  "pm.test('Resultado tiene alto, ancho y bordes_detectados', function () {",
+                  "    var resultado = pm.response.json().resultado;",
+                  "    pm.expect(resultado).to.have.property('alto');",
+                  "    pm.expect(resultado).to.have.property('ancho');",
+                  "    pm.expect(resultado).to.have.property('bordes_detectados');",
+                  "});",
+                  "",
+                  "pm.test('alto y ancho son números positivos', function () {",
+                  "    var resultado = pm.response.json().resultado;",
+                  "    pm.expect(resultado.alto).to.be.a('number').and.to.be.above(0);",
+                  "    pm.expect(resultado.ancho).to.be.a('number').and.to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('bordes_detectados es 0 o 1', function () {",
+                  "    var bd = pm.response.json().resultado.bordes_detectados;",
+                  "    pm.expect([0, 1]).to.include(bd);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Selecciona una imagen PNG, JPG, BMP, TIFF o WEBP"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/analyze-image",
+              "host": ["{{base_url}}"],
+              "path": ["analyze-image"]
+            },
+            "description": "Sube una imagen y obtiene sus dimensiones y si se detectaron bordes con Canny."
+          },
+          "response": [
+            {
+              "name": "Respuesta exitosa",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"Procesamiento exitoso\",\n    \"resultado\": {\n        \"alto\": 480,\n        \"ancho\": 640,\n        \"bordes_detectados\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /analyze-image - Extensión no permitida (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 para extensión no permitida', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de error presente', function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('detail');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Sube un archivo .txt o .pdf para probar la validación"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/analyze-image",
+              "host": ["{{base_url}}"],
+              "path": ["analyze-image"]
+            },
+            "description": "Verifica que la API rechace archivos con extensión no permitida."
+          },
+          "response": [
+            {
+              "name": "Error 400 - Extensión no permitida",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"detail\": \"Tipo de archivo no permitido '.exe'. Permitidos: .jpg, .jpeg, .png, .bmp, .tiff, .webp\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /analyze-image - Imagen JPG válida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 para JPG', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Procesamiento exitoso', function () {",
+                  "    pm.expect(pm.response.json().mensaje).to.eql('Procesamiento exitoso');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Selecciona una imagen JPG/JPEG"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/analyze-image",
+              "host": ["{{base_url}}"],
+              "path": ["analyze-image"]
+            },
+            "description": "Prueba el endpoint con una imagen en formato JPEG."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documentación",
+      "item": [
+        {
+          "name": "GET /docs - Swagger UI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Swagger UI disponible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/docs",
+              "host": ["{{base_url}}"],
+              "path": ["docs"]
+            },
+            "description": "Accede a la documentación interactiva Swagger UI generada por FastAPI."
+          }
+        },
+        {
+          "name": "GET /redoc - ReDoc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('ReDoc disponible', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/redoc",
+              "host": ["{{base_url}}"],
+              "path": ["redoc"]
+            },
+            "description": "Accede a la documentación ReDoc."
+          }
+        },
+        {
+          "name": "GET /openapi.json - OpenAPI Schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Schema contiene rutas esperadas', function () {",
+                  "    var schema = pm.response.json();",
+                  "    pm.expect(schema.paths).to.have.property('/');",
+                  "    pm.expect(schema.paths).to.have.property('/analyze-image');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/openapi.json",
+              "host": ["{{base_url}}"],
+              "path": ["openapi.json"]
+            },
+            "description": "Obtiene el schema OpenAPI 3.x generado automáticamente por FastAPI."
+          }
+        }
+      ]
+    }
+  ]
+}
