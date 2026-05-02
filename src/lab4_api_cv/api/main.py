@@ -25,6 +25,7 @@ ALLOWED_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+
 def _ruta_segura(directorio: str, nombre_archivo: str) -> str:
     """
     Construye una ruta segura dentro de `directorio`, previniendo path traversal.
